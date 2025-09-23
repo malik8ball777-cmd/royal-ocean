@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ROYAL OCEAN</title>
+<style>
+  /* Basic layout + styles (kept readable and mobile-friendly) */
+  :root{--accent:#ff6f61;--accent-dark:#ff3b2e;--menu:#f9a825}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#ff9a9e,#fad0c4,#fbc2eb,#a18cd1,#fbc2eb);color:#222}
+  header{background:var(--accent);color:#fff;padding:14px 16px;text-align:center;font-size:22px;font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+  .container{display:flex;gap:20px;align-items:flex-start}
+  #menu{width:220px;background:var(--menu);color:#fff;min-height:calc(100vh - 68px);padding:18px 12px;box-shadow:2px 0 8px rgba(0,0,0,.15);position:sticky;top:68px}
+  #menu button{width:100%;margin:8px 0;padding:12px;border:none;background:#ffb300;color:#fff;border-radius:8px;cursor:pointer;font-weight:700}
+  #menu button:hover{background:var(--accent-dark)}
+  #content{flex:1;padding:20px;min-height:calc(100vh - 68px)}
+  .card{background:#fff;border-radius:10px;padding:18px;margin-bottom:18px;box-shadow:0 6px 15px rgba(0,0,0,.12);max-width:900px}
+  input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;margin:8px 0;box-sizing:border-box}
+  .btn{background:var(--accent);color:#fff;padding:10px 14px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--accent-dark)}
+  .small{font-size:13px;color:#555}
+  .plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .plan{border-radius:10px;padding:12px;background:linear-gradient(180deg,#fff,#f7f7f7);border:1px solid #eee}
+  .plan h4{margin:6px 0}
+  .success{color:green;font-weight:700}
+  .danger{color:#c0392b;font-weight:700}
+  .hidden{display:none}
+  @media(max-width:800px){#menu{position:static;width:100%;min-height:auto} .container{flex-direction:column}}
+  .adminHeader{display:flex;gap:8px;justify-content:space-between;align-items:center}
+  .row{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<header>ROYAL OCEAN</header>
+
+<!-- LOGIN / SIGNUP PAGE -->
+<div id="authCard" class="card" style="max-width:420px;margin:20px auto">
+  <h2 style="margin:0 0 8px 0">Login or Sign Up</h2>
+
+  <div id="authTabs" style="display:flex;gap:8px;margin-bottom:10px">
+    <button id="showLoginBtn" class="btn" style="flex:1" onclick="showAuth('login')">Login</button>
+    <button id="showSignupBtn" class="btn" style="flex:1;background:#f1c40f;color:#111" onclick="showAuth('signup')">Sign Up</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <label class="small">Gmail</label>
+    <input type="email" id="loginGmail" placeholder="you@gmail.com">
+    <label class="small">Password</label>
+    <div style="position:relative">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <button style="position:absolute;right:6px;top:6px;padding:6px" onclick="toggleShow('loginPassword')">Show</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" onclick="attemptLogin()">Login</button>
+      <button class="btn" style="background:#777" onclick="showForgot()">Forgot Password</button>
+    </div>
+    <p class="small" style="margin-top:10px">Admin login: use admin gmail and password (if admin)</p>
+  </div>
+
+  <!-- SIGNUP -->
+  <div id="signupBox" class="hidden">
+    <label class="small">Gmail (must be @gmail.com)</label>
+    <input type="email" id="signupGmail" placeholder="you@gmail.com">
+    <label class="small">Username</label>
+    <input type="text" id="signupUser" placeholder="Username">
+    <label class="small">Password (min 8 chars)</label>
+    <div style="position:relative">
+      <input type="password" id="signupPass" placeholder="Password">
+      <button style="position:absolute;right:6px;top:6px;padding:6px" onclick="toggleShow('signupPass')">Show</button>
+    </div>
+    <label class="small">Confirm Password</label>
+    <input type="password" id="signupPass2" placeholder="Confirm Password">
+    <label class="small">Inviter Username (optional)</label>
+    <input type="text" id="signupInviter" placeholder="Inviter username">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" onclick="attemptSignup()">Sign Up</button>
+      <button class="btn" style="background:#777" onclick="showAuth('login')">Back to Login</button>
+    </div>
+    <p class="small" style="margin-top:10px">By signing up you agree to our terms.</p>
+  </div>
+
+  <!-- FORGOT -->
+  <div id="forgotBox" class="hidden">
+    <label class="small">Enter your Gmail</label>
+    <input type="email" id="forgotGmail" placeholder="you@gmail.com">
+    <label class="small">Username</label>
+    <input type="text" id="forgotUser" placeholder="Username">
+    <label class="small">New password (min 8 chars)</label>
+    <input type="password" id="forgotNewPass" placeholder="New Password">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" onclick="attemptReset()">Reset Password</button>
+      <button class="btn" style="background:#777" onclick="showAuth('login')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP + ADMIN (both hidden until login) -->
+<div class="container" id="mainArea" style="display:none">
+  <!-- left menu -->
+  <div id="menu">
+    <button onclick="showSection('profile')">Profile</button>
+    <button onclick="showSection('plans')">Plans</button>
+    <button onclick="showSection('deposit')">Deposit</button>
+    <button onclick="showSection('withdraw')">Withdraw</button>
+    <button onclick="showSection('earn')">Earn Money</button>
+    <button onclick="showSection('team')">Team</button>
+    <button onclick="showSection('history')">History</button>
+    <button onclick="showSection('helpline')">Helpline</button>
+    <button class="btn" onclick="doLogout()">Logout</button>
+  </div>
+
+  <!-- content -->
+  <div id="content">
+    <!-- Profile -->
+    <div id="profile" class="card">
+      <h3>Profile</h3>
+      <p><b>Gmail:</b> <span id="pGmail"></span></p>
+      <p><b>Username:</b> <span id="pUser"></span></p>
+      <p><b>Balance:</b> <span id="pBalance">0</span> PKR</p>
+      <p><b>Active Plan:</b> <span id="pPlan">None</span></p>
+      <p><b>Plan Days Left:</b> <span id="pDays">0</span></p>
+      <p><b>Inviter:</b> <span id="pInviter">None</span></p>
+    </div>
+
+    <!-- Plans -->
+    <div id="plans" class="card hidden">
+      <h3>Available Plans (All plans limit: 35 days)</h3>
+      <div class="plans-grid" id="plansGrid"></div>
+    </div>
+
+    <!-- Deposit -->
+    <div id="deposit" class="card hidden">
+      <h3>Deposit</h3>
+      <label class="small">Choose Wallet</label>
+      <select id="depWallet">
+        <option value="jazzcash">JazzCash (03228786546)</option>
+        <option value="easypaisa">EasyPaisa</option>
+        <option value="upaisa">Upaisa</option>
+      </select>
+      <label class="small">Amount</label>
+      <input type="number" id="depAmount" placeholder="Amount">
+      <label class="small">Sender Name</label>
+      <input type="text" id="depSender">
+      <label class="small">Sender Phone</label>
+      <input type="text" id="depPhone">
+      <label class="small">Transaction ID (12 digits)</label>
+      <input type="text" id="depTxn" placeholder="12 digit transaction id">
+      <button class="btn" onclick="submitDeposit()">Send Deposit Request</button>
+      <p id="depMsg" class="small"></p>
+    </div>
+
+    <!-- Withdraw -->
+    <div id="withdraw" class="card hidden">
+      <h3>Withdraw</h3>
+      <label class="small">Choose Method</label>
+      <select id="withMethod" onchange="renderWithdrawFields()">
+        <option value="upaisa">Upaisa</option>
+        <option value="easypaisa">Easypaisa</option>
+        <option value="bank">Bank Account</option>
+      </select>
+      <div id="withFields"></div>
+      <label class="small">Amount</label>
+      <input type="number" id="withAmount">
+      <button class="btn" onclick="submitWithdraw()">Send Withdraw Request</button>
+      <p id="withMsg" class="small"></p>
+    </div>
+
+    <!-- Earn -->
+    <div id="earn" class="card hidden">
+      <h3>Earn Money</h3>
+      <p class="small">If you have an active plan you can claim daily earning once per day here.</p>
+      <button class="btn" onclick="claimDaily()">Claim Daily Earning</button>
+      <p id="earnMsg" class="small"></p>
+    </div>
+
+    <!-- Team -->
+    <div id="team" class="card hidden">
+      <h3>Team & Referral</h3>
+      <p>Share this link with friends (they must sign up through it):</p>
+      <input readonly id="refLink" class="small">
+      <button class="btn" onclick="copyRef()">Copy Link</button>
+      <h4>Invited members</h4>
+      <div id="invitedList" class="small"></div>
+      <h4>Referral bonuses</h4>
+      <ul class="small">
+        <li>Plan1: inviter gets 120 PKR</li>
+        <li>Plan2: inviter gets 300 PKR</li>
+        <li>Plan3: inviter gets 450 PKR</li>
+        <li>Plan4: inviter gets 600 PKR</li>
+        <li>Plan5: inviter gets 900 PKR</li>
+        <li>Plan6: inviter gets 1600 PKR</li>
+      </ul>
+    </div>
+
+    <!-- History -->
+    <div id="history" class="card hidden">
+      <h3>History</h3>
+      <div id="historyList" class="small"></div>
+    </div>
+
+    <!-- Helpline -->
+    <div id="helpline" class="card hidden">
+      <h3>Helpline</h3>
+      <p>Call / WhatsApp: <b>03030948131</b></p>
+      <p>WhatsApp Channel: <a href="https://whatsapp.com/channel/0029Vb6Gx7LKWEKrxZVXWK0o" target="_blank">Join Here</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL (separate view) -->
+<div id="adminArea" class="card hidden" style="max-width:1100px;margin:20px auto">
+  <div class="adminHeader">
+    <h2>Admin Panel</h2>
+    <div>
+      <button class="btn" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px">
+    <div style="flex:1;min-width:300px" class="card">
+      <h4>All Users</h4>
+      <div id="adminUsers" class="small"></div>
+    </div>
+
+    <div style="flex:1;min-width:300px" class="card">
+      <h4>Deposit Requests</h4>
+      <div id="adminDeposits" class="small"></div>
+    </div>
+
+    <div style="flex:1;min-width:300px" class="card">
+      <h4>Withdraw Requests</h4>
+      <div id="adminWithdraws" class="small"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* -------------------------
+   INITIAL DATA & HELPERS
+   ------------------------- */
+const ADMIN_EMAIL = "malik9nft@gmail.com";
+const ADMIN_PASS = "AMIR131P";
+
+const PLANS = [
+  { id:1, name:"Plan 1", price:500, daily:20, days:35, refBonus:120 },
+  { id:2, name:"Plan 2", price:1000, daily:45, days:35, refBonus:300 },
+  { id:3, name:"Plan 3", price:1500, daily:70, days:35, refBonus:450 },
+  { id:4, name:"Plan 4", price:2000, daily:95, days:35, refBonus:600 },
+  { id:5, name:"Plan 5", price:3000, daily:140, days:35, refBonus:900 },
+  { id:6, name:"Plan 6", price:5000, daily:240, days:35, refBonus:1600 }
+];
+
+let users = JSON.parse(localStorage.getItem("royal_users")||"[]");
+let deposits = JSON.parse(localStorage.getItem("royal_deposits")||"[]");
+let withdraws = JSON.parse(localStorage.getItem("royal_withdraws")||"[]");
+let history = JSON.parse(localStorage.getItem("royal_history")||"[]");
+
+let current = JSON.parse(sessionStorage.getItem("royal_current")||"null");
+
+/* -------------------------
+   AUTH UI LOGIC
+   ------------------------- */
+function showAuth(mode){
+  document.getElementById('loginBox').classList.toggle('hidden', mode!=='login');
+  document.getElementById('signupBox').classList.toggle('hidden', mode!=='signup');
+  document.getElementById('forgotBox').classList.add('hidden');
+}
+
+function showForgot(){
+  document.getElementById('loginBox').classList.add('hidden');
+  document.getElementById('signupBox').classList.add('hidden');
+  document.getElementById('forgotBox').classList.remove('hidden');
+}
+
+/* show/hide password */
+function toggleShow(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+/* validate gmail */
+function isValidGmail(g){ return typeof g==='string' && g.trim().toLowerCase().endsWith('@gmail.com'); }
+
+/* attempt signup */
+function attemptSignup(){
+  const gmail = document.getElementById('signupGmail').value.trim();
+  const username = document.getElementById('signupUser').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  const pass2 = document.getElementById('signupPass2').value;
+  const inviter = document.getElementById('signupInviter').value.trim();
+
+  if(!isValidGmail(gmail)){ alert('Gmail must be a valid @gmail.com address'); return; }
+  if(username.length<2){ alert('Enter a valid username'); return; }
+  if(pass.length<8){ alert('Password must be at least 8 characters'); return; }
+  if(pass!==pass2){ alert('Password and confirm password do not match'); return; }
+
+  // unique email
+  if(users.some(u=>u.gmail.toLowerCase()===gmail.toLowerCase())){ alert('This gmail already exists. Please login.'); return; }
+
+  const newUser = {
+    id: Date.now(),
+    gmail, username, password:pass,
+    inviter: inviter || null,
+    balance: 0,
+    plan: null, // {id,daily,daysLeft,lastClaim}
+    invited: [],
+    createdAt: new Date().toISOString()
+  };
+
+  // handle inviter if exists
+  if(inviter){
+    const inv = users.find(u=>u.username===inviter);
+    if(inv){ inv.balance = parseFloat(inv.balance)+ (PLANS[0].refBonus || 0); // default small bonus? we send actual bonus on plan buy, not here
+      inv.invited = inv.invited || [];
+      inv.invited.push(username);
+    }
+  }
+
+  users.push(newUser);
+  saveAll();
+  alert('Signup successful. You can now login.');
+  showAuth('login');
+}
+
+/* attempt login */
+function attemptLogin(){
+  const gmail = document.getElementById('loginGmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+
+  if(gmail===ADMIN_EMAIL && pass===ADMIN_PASS){
+    // admin login
+    showAdmin();
+    return;
+  }
+
+  if(!isValidGmail(gmail)){ alert('Please enter a valid @gmail.com gmail'); return; }
+  const u = users.find(x=>x.gmail.toLowerCase()===gmail.toLowerCase());
+  if(!u){ alert('User not found. Please signup.'); return; }
+  if(u.password !== pass){ alert('Incorrect password'); return; }
+
+  current = u;
+  sessionStorage.setItem('royal_current', JSON.stringify(current));
+  openMain();
+}
+
+/* forgot/reset password */
+function attemptReset(){
+  const gmail = document.getElementById('forgotGmail').value.trim();
+  const username = document.getElementById('forgotUser').value.trim();
+  const newPass = document.getElementById('forgotNewPass').value;
+
+  if(!isValidGmail(gmail)){ alert('Enter valid @gmail.com'); return; }
+  if(newPass.length < 8){ alert('Password must be at least 8 chars'); return; }
+  const u = users.find(x=>x.gmail.toLowerCase()===gmail.toLowerCase() && x.username===username);
+  if(!u){ alert('No matching user found'); return; }
+  u.password = newPass;
+  saveAll();
+  alert('Password reset successful. Please login.');
+  showAuth('login');
+}
+
+/* -------------------------
+   APP UI & STORAGE
+   ------------------------- */
+function saveAll(){
+  localStorage.setItem('royal_users', JSON.stringify(users));
+  localStorage.setItem('royal_deposits', JSON.stringify(deposits));
+  localStorage.setItem('royal_withdraws', JSON.stringify(withdraws));
+  localStorage.setItem('royal_history', JSON.stringify(history));
+}
+
+function openMain(){
+  document.getElementById('authCard').classList.add('hidden');
+  document.getElementById('mainArea').style.display = 'flex';
+  renderProfile();
+  renderPlans();
+  renderInvited();
+  renderHistory();
+}
+
+/* logout */
+function doLogout(){
+  current = null;
+  sessionStorage.removeItem('royal_current');
+  document.getElementById('mainArea').style.display = 'none';
+  document.getElementById('authCard').classList.remove('hidden');
+}
+
+/* -------------------------
+   PROFILE & UI RENDER
+   ------------------------- */
+function renderProfile(){
+  if(!current) return;
+  document.getElementById('pGmail').innerText = current.gmail;
+  document.getElementById('pUser').innerText = current.username;
+  document.getElementById('pBalance').innerText = Number(current.balance||0).toFixed(2);
+  if(current.plan){
+    document.getElementById('pPlan').innerText = PLANS.find(p=>p.id===current.plan.id).name + " ("+current.plan.daily+"/day)";
+    document.getElementById('pDays').innerText = current.plan.daysLeft;
+  } else {
+    document.getElementById('pPlan').innerText = 'No Active Plan';
+    document.getElementById('pDays').innerText = '0';
+  }
+  document.getElementById('pInviter').innerText = current.inviter || 'None';
+  // update session
+  sessionStorage.setItem('royal_current', JSON.stringify(current));
+}
+
+/* RENDER PLANS */
+function renderPlans(){
+  const container = document.getElementById('plansGrid');
+  container.innerHTML = '';
+  PLANS.forEach(plan=>{
+    const div = document.createElement('div');
+    div.className = 'plan';
+    div.innerHTML = `<h4>${plan.name}</h4>
+      <p><b>Price:</b> ${plan.price} PKR</p>
+      <p><b>Daily Earning:</b> ${plan.daily} PKR/day</p>
+      <p><b>Duration:</b> ${plan.days} days</p>
+      <p class="small">Inviter bonus on this plan: ${plan.refBonus} PKR</p>
+      <button class="btn" onclick="buyPlan(${plan.id})">Buy ${plan.name}</button>`;
+    container.appendChild(div);
+  });
+}
+
+/* -------------------------
+   BUY PLAN logic
+   ------------------------- */
+function buyPlan(planId){
+  if(!current){ alert('Please login first'); return; }
+  const plan = PLANS.find(p=>p.id===planId);
+  if(!plan) return;
+
+  // require sufficient balance
+  if((current.balance||0) < plan.price){
+    alert('Insufficient balance. Deposit money first to buy this plan.');
+    return;
+  }
+
+  // assign plan
+  current.plan = {
+    id: plan.id,
+    daily: plan.daily,
+    daysLeft: plan.days,
+    lastClaim: null
+  };
+  current.balance = Number(current.balance) - Number(plan.price);
+
+  // send referral bonus to inviter automatically
+  if(current.inviter){
+    const inv = users.find(u=>u.username===current.inviter);
+    if(inv){
+      inv.balance = Number(inv.balance || 0) + Number(plan.refBonus);
+      history.push({type:'referral', to:inv.username, from:current.username, amount:plan.refBonus, date:new Date().toISOString()});
+    }
+  }
+
+  // update arrays and UI
+  const idx = users.findIndex(u=>u.id===current.id);
+  if(idx>=0) users[idx] = current;
+  saveAll();
+  renderProfile();
+  renderInvited();
+  alert('Plan purchased successfully. Daily earnings can be claimed once per day from Earn Money section.');
+}
+
+/* -------------------------
+   DEPOSIT / WITHDRAW
+   ------------------------- */
+function submitDeposit(){
+  if(!current){ alert('Please login'); return; }
+  const wallet = document.getElementById('depWallet').value;
+  const amount = Number(document.getElementById('depAmount').value);
+  const sender = document.getElementById('depSender').value.trim();
+  const phone = document.getElementById('depPhone').value.trim();
+  const txn = document.getElementById('depTxn').value.trim();
+
+  if(!amount || amount<=0){ alert('Enter valid amount'); return; }
+  if(!sender){ alert('Enter sender name'); return; }
+  if(!phone){ alert('Enter sender phone'); return; }
+  if(!/^\d{12}$/.test(txn)){ alert('Transaction ID must be exactly 12 digits'); return; }
+
+  const req = {
+    id: Date.now(),
+    userId: current.id,
+    gmail: current.gmail,
+    username: current.username,
+    wallet, amount, sender, phone, txn,
+    status:'pending',
+    createdAt: new Date().toISOString()
+  };
+  deposits.push(req);
+  saveAll();
+  document.getElementById('depMsg').innerText = 'Deposit request submitted. Admin will approve it soon.';
+  // clear fields
+  document.getElementById('depAmount').value=''; document.getElementById('depSender').value=''; document.getElementById('depPhone').value=''; document.getElementById('depTxn').value='';
+  renderAdminListsIfOpen();
+}
+
+/* render withdraw input fields */
+function renderWithdrawFields(){
+  const m = document.getElementById('withMethod').value;
+  const container = document.getElementById('withFields');
+  container.innerHTML = '';
+  if(m==='bank'){
+    container.innerHTML = '<label class="small">Bank A/C Title</label><input id="bankTitle" placeholder="Account title"><label class="small">Account Number / IBAN</label><input id="bankAcc" placeholder="Account/IBAN">';
+  } else {
+    container.innerHTML = '<label class="small">Account Number</label><input id="mobileAcc" placeholder="Mobile number (e.g. 03xxxx)">';
+  }
+}
+
+/* submit withdraw */
+function submitWithdraw(){
+  if(!current){ alert('Please login'); return; }
+  const method = document.getElementById('withMethod').value;
+  const amount = Number(document.getElementById('withAmount').value);
+  if(!amount || amount<=0){ alert('Enter valid amount'); return; }
+  if((current.balance||0) < amount){ alert('Insufficient balance'); return; }
+
+  let destInfo = '';
+  if(method==='bank'){
+    const title = document.getElementById('bankTitle').value.trim();
+    const acc = document.getElementById('bankAcc').value.trim();
+    if(!title || !acc){ alert('Fill bank details'); return; }
+    destInfo = {title, acc};
+  } else {
+    const mobile = document.getElementById('mobileAcc').value.trim();
+    if(!/^\d+$/.test(mobile)){ alert('Enter valid mobile number'); return; }
+    destInfo = {mobile};
+  }
+
+  const req = { id: Date.now(), userId: current.id, username: current.username, gmail: current.gmail, method, destInfo, amount, status:'pending', createdAt: new Date().toISOString() };
+  withdraws.push(req);
+  saveAll();
+  document.getElementById('withMsg').innerText = 'Withdraw request submitted. Admin will approve it.';
+  document.getElementById('withAmount').value=''; renderAdminListsIfOpen();
+}
+
+/* -------------------------
+   EARN / CLAIM DAILY
+   ------------------------- */
+function claimDaily(){
+  if(!current){ alert('Login first'); return; }
+  if(!current.plan){ alert('No active plan'); return; }
+  if(current.plan.daysLeft <= 0){ alert('Plan finished'); return; }
+  // check lastClaim date (one claim per day)
+  const last = current.plan.lastClaim ? new Date(current.plan.lastClaim).toDateString() : null;
+  const today = new Date().toDateString();
+  if(last === today){ alert('Already claimed today. Come back tomorrow.'); return; }
+
+  // add earning
+  current.balance = Number(current.balance||0) + Number(current.plan.daily);
+  current.plan.daysLeft = Number(current.plan.daysLeft) - 1;
+  current.plan.lastClaim = new Date().toISOString();
+
+  // record history
+  history.push({ type:'daily', username: current.username, amount: current.plan.daily, planId: current.plan.id, date: new Date().toISOString()});
+  const idx = users.findIndex(u=>u.id===current.id); if(idx>=0) users[idx] = current;
+  saveAll();
+  renderProfile(); renderHistory();
+  document.getElementById('earnMsg').innerText = `You earned ${current.plan.daily} PKR today. Days left: ${current.plan.daysLeft}`;
+}
+
+/* -------------------------
+   TEAM / REFERRAL
+   ------------------------- */
+function renderInvited(){
+  if(!current) return;
+  const refInput = document.getElementById('refLink');
+  const url = window.location.origin + window.location.pathname + '?ref=' + encodeURIComponent(current.username);
+  refInput.value = url;
+  const list = (users.filter(u=>u.inviter===current.username) || []).map(x => `<div>${x.username} (${x.gmail})</div>`).join('');
+  document.getElementById('invitedList').innerHTML = list || '<div class="small">No invited members yet.</div>';
+}
+
+/* copy referral link */
+function copyRef(){ const el=document.getElementById('refLink'); el.select(); el.setSelectionRange(0,99999); navigator.clipboard.writeText(el.value); alert('Referral link copied'); }
+
+/* -------------------------
+   HISTORY RENDER
+   ------------------------- */
+function renderHistory(){
+  const out = history.map(h=>{
+    return `<div>${h.date ? (new Date(h.date)).toLocaleString() : ''} - ${h.type} - ${h.username||h.to||h.from||''} - ${h.amount||''}</div>`;
+  }).join('');
+  document.getElementById('historyList').innerHTML = out || '<div class="small">No history yet.</div>';
+}
+
+/* -------------------------
+   ADMIN UI (client-side)
+   ------------------------- */
+function showAdmin(){
+  document.getElementById('authCard').classList.add('hidden');
+  document.getElementById('adminArea').classList.remove('hidden');
+  renderAdminLists();
+}
+
+function adminLogout(){ document.getElementById('adminArea').classList.add('hidden'); document.getElementById('authCard').classList.remove('hidden'); }
+
+/* render lists */
+function renderAdminLists(){
+  // users
+  const uDiv = document.getElementById('adminUsers'); uDiv.innerHTML = users.map(u => `<div style="border-bottom:1px solid #eee;padding:6px"><b>${u.username}</b> (${u.gmail}) — Balance: ${Number(u.balance||0).toFixed(2)} PKR</div>`).join('') || '<div>No users</div>';
+
+  // deposits
+  const dDiv = document.getElementById('adminDeposits'); dDiv.innerHTML = deposits.map(d => {
+    return `<div style="border-bottom:1px solid #eee;padding:6px">
+      <div><b>${d.username}</b> requested deposit ${d.amount} via ${d.wallet} — TXN: ${d.txn}</div>
+      <div style="margin-top:6px"><button class="btn" onclick="adminApproveDeposit(${d.id})">Approve</button>
+      <button style="background:#777" onclick="adminRejectDeposit(${d.id})">Reject</button></div>
+    </div>`;
+  }).join('') || '<div>No deposit requests</div>';
+
+  // withdraws
+  const wDiv = document.getElementById('adminWithdraws'); wDiv.innerHTML = withdraws.map(w => {
+    return `<div style="border-bottom:1px solid #eee;padding:6px">
+      <div><b>${w.username}</b> requested withdraw ${w.amount} via ${w.method}</div>
+      <div style="margin-top:6px"><button class="btn" onclick="adminApproveWithdraw(${w.id})">Approve</button>
+      <button style="background:#777" onclick="adminRejectWithdraw(${w.id})">Reject</button></div>
+    </div>`;
+  }).join('') || '<div>No withdraw requests</div>';
+}
+
+/* helpers to find user by id */
+function findUserById(id){ return users.find(u=>u.id===id); }
+
+/* approve deposit */
+function adminApproveDeposit(id){
+  const idx = deposits.findIndex(d=>d.id===id); if(idx<0) { alert('Not found'); return; }
+  const d = deposits[idx];
+  const u = findUserById(d.userId);
+  if(!u){ alert('User not found'); return; }
+  u.balance = Number(u.balance||0) + Number(d.amount);
+  deposits.splice(idx,1);
+  history.push({type:'deposit', username:u.username, amount:d.amount, date:new Date().toISOString()});
+  saveAll();
+  renderAdminLists();
+  alert('Deposit approved and balance updated.');
+}
+
+/* reject deposit */
+function adminRejectDeposit(id){
+  const idx = deposits.findIndex(d=>d.id===id); if(idx<0) return; deposits.splice(idx,1); saveAll(); renderAdminLists(); alert('Deposit rejected');
+}
+
+/* approve withdraw */
+function adminApproveWithdraw(id){
+  const idx = withdraws.findIndex(w=>w.id===id); if(idx<0) return; const w = withdraws[idx];
+  const u = findUserById(w.userId);
+  if(!u){ alert('User not found'); return; }
+  if(Number(u.balance||0) < Number(w.amount)){ alert('User has insufficient balance'); return; }
+  u.balance = Number(u.balance) - Number(w.amount);
+  withdraws.splice(idx,1);
+  history.push({type:'withdraw', username:u.username, amount:w.amount, date:new Date().toISOString()});
+  saveAll(); renderAdminLists(); alert('Withdraw approved and balance deducted.');
+}
+
+/* reject withdraw */
+function adminRejectWithdraw(id){ const idx = withdraws.findIndex(w=>w.id===id); if(idx<0) return; withdraws.splice(idx,1); saveAll(); renderAdminLists(); alert('Withdraw rejected'); }
+
+/* for re-render if admin area open */
+function renderAdminListsIfOpen(){ if(!document.getElementById('adminArea').classList.contains('hidden')) renderAdminLists(); }
+
+/* -------------------------
+   small UI helpers
+   ------------------------- */
+function showSection(id){
+  ['profile','plans','deposit','withdraw','earn','team','history','helpline'].forEach(x=>{
+    document.getElementById(x).classList.toggle('hidden', x !== id);
+  });
+}
+
+/* initial render of withdraw fields */
+renderWithdrawFields();
+
+/* on page load: if query contains ref=username prefill inviter on signup */
+(function handleReferralQuery(){
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if(ref){
+    // if on signup, prefill inviter
+    const el = document.getElementById('signupInviter');
+    if(el) el.value = decodeURIComponent(ref);
+  }
+})();
+
+/* if session exists, open main automatically */
+(function tryRestoreSession(){
+  const s = sessionStorage.getItem('royal_current');
+  if(s){
+    current = JSON.parse(s);
+    // re-sync to users array
+    const idx = users.findIndex(u=>u.id===current.id);
+    if(idx>=0) users[idx] = current; else users.push(current);
+    saveAll();
+    openMain();
+  }
+})();
+
+</script>
+</body>
+</html>
